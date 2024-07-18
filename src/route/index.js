@@ -1,12 +1,12 @@
 import studentRouter from "./studentPaths.js";
 import programRouter from "./programPaths.js";
 import courseRouter from "./coursePaths.js";
-import bodyParser from "body-parser";
+import userRouter from "./userPaths.js";
 import express from "express";
 const mainRouter = express.Router();
-// mainRouter.use(bodyParser.json());
 mainRouter.use(express.json());
 mainRouter.use("/api", studentRouter);
 mainRouter.use("/api",programRouter);
 mainRouter.use("/api",courseRouter);
+mainRouter.use("/api",userRouter);
 export default mainRouter;
