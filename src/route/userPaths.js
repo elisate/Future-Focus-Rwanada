@@ -5,6 +5,10 @@ import {
   getProfile,
   getAllUsers,
   refreshTokens,
+  updateUser,
+  deleteUser,
+  getUserById
+  
 } from "../controller/userController.js";
 import { auth } from "../../utils/jwtFunction.js";
 import { isAdmin, isInstructor } from "../middlewares/userRoleControl.js";
@@ -21,6 +25,8 @@ userRouter.get("/admin", auth, isAdmin, (req, res) => {
 userRouter.get("/instructor", auth, isInstructor, (req, res) => {
   res.send("Instructor access granted");
 });
-userRouter.get("/getAllUsers", auth, isAdmin, getAllUsers);
+userRouter.get("/getUserById/:id", auth, isAdmin, getUserById);
+userRouter.put("/updateUser/:id", auth, isAdmin, updateUser);
+userRouter.delete("/deleteUser/:id", auth, isAdmin, deleteUser);
 
 export default userRouter;

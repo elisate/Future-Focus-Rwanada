@@ -48,6 +48,10 @@ const studentschema = mongoose.Schema(
       type: BigInt,
       required: false,
     },
+    tokens: {
+      accessToken: { type: String },
+      refreshToken: { type: String },
+    },
   },
   {
     timestamps: true,

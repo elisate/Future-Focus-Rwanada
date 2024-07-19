@@ -138,16 +138,7 @@ export const getProfile = async (req, res) => {
   res.json(req.user);
 };
 
-export const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch users", error: error.message });
-  }
-};
+
 
 export const isAdmin = (req, res, next) => {
   if (req.user.role !== "isAdmin") {
@@ -162,3 +153,70 @@ export const isInstructor = (req, res, next) => {
   }
   next();
 };
+
+//CRUD OPERATIONS
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch users", error: error.message });
+  }
+};
+
+export const getUserById = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch user", error: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  const userId = req.params.id;
+  const updates = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User updated successfully", user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to update user", error: error.message });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully", user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete user", error: error.message });
+  }
+};
+
