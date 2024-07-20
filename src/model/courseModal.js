@@ -1,26 +1,35 @@
+// import { array } from "i/lib/util";
 import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
   {
+    courseTitle:{
+      type:String
+    },
     videos: {
-      type: Array, // Array of strings for video URLs
-      // default: [], // Default to an empty array
+      type: Array,  
+    },
+
+    documents:{
+     type:Array,
+    },
+    images:{
+    type:Array
+    },
+    courseContent:{
+      type:String
     },
     name: {
       type: String,
     },
-    // program: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Program",
-    //   required: true, // Ensure program is always provided
-    // },
+    program: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Program",
+      required: false, // Ensure program is always provided
+    },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true, 
   }
 );
-
-// Optionally, you can add indexes if you query by program frequently
-// courseSchema.index({ program: 1 });
-
 export default mongoose.model("Course", courseSchema);
