@@ -42,6 +42,7 @@
 
 
 import Course from "../model/courseModal.js";
+import Program from "../model/programModal.js"; // Import the Program model
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -52,7 +53,7 @@ cloudinary.config({
 
 export const createCourse = async (req, res) => {
   try {
-    const { program } = req.body;
+    const { program_title, courseTitle, courseContent } = req.body;
     const { videos, documents, images } = req.files;
 
     console.log("Request body:", req.body);
@@ -60,6 +61,17 @@ export const createCourse = async (req, res) => {
 
     if (!videos && !documents && !images) {
       return res.status(400).json({ message: "At least one file is required" });
+    }
+
+    // Log program title for debugging
+    console.log("Searching for program with title:", program_title);
+
+    // Find the program by its title
+    const program = await Program.findOne({ program_title });
+    console.log("Found program:", program);
+
+    if (!program) {
+      return res.status(400).json({ message: "Program not found" });
     }
 
     const uploadFiles = async (files) => {
@@ -83,10 +95,17 @@ export const createCourse = async (req, res) => {
     const imageUrls = images ? await uploadFiles(images) : [];
 
     const course = await Course.create({
-      program,
+      program_title: program._id, // Use the program ID
+      courseTitle,
+      courseContent,
       videos: videoUrls,
       documents: documentUrls,
       images: imageUrls,
+    });
+
+    // Optionally, update the program with the new course
+    await Program.findByIdAndUpdate(program._id, {
+      $push: { courses: course._id },
     });
 
     return res.status(201).json({ data: course, message: "Success" });

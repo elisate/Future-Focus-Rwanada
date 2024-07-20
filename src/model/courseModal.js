@@ -3,33 +3,30 @@ import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
   {
-    courseTitle:{
-      type:String
-    },
-    videos: {
-      type: Array,  
-    },
-
-    documents:{
-     type:Array,
-    },
-    images:{
-    type:Array
-    },
-    courseContent:{
-      type:String
-    },
-    name: {
+    courseTitle: {
       type: String,
     },
-    program: {
+    videos: {
+      type: Array,
+    },
+
+    documents: {
+      type: Array,
+    },
+    images: {
+      type: Array,
+    },
+    courseContent: {
+      type: String,
+    },
+    program_title: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Program",
-      required: false, // Ensure program is always provided
+      required: true, // Ensure program is always provided
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 export default mongoose.model("Course", courseSchema);
