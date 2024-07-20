@@ -2,11 +2,11 @@ import express, { json } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import mainRouter from "./src/route/index.js";
-
+import bodyParser from "body-parser";
 dotenv.config();
 const app = express();
-
-app.use("/",mainRouter);
+app.use(bodyParser.json());
+app.use("/", mainRouter);
 
 // environment variables
 const port = process.env.PORT || 3000;

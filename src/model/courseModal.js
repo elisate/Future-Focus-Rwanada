@@ -1,41 +1,26 @@
 import mongoose from "mongoose";
 
-const courseSchema = mongoose.Schema(
+const courseSchema = new mongoose.Schema(
   {
-    title: {
+    videos: {
+      type: Array, // Array of strings for video URLs
+      // default: [], // Default to an empty array
+    },
+    name: {
       type: String,
-      required: true,
     },
-    description: {
-      type: String,
-    },
-    videos: [
-      {
-        title: String,
-        url: String,
-      },
-    ],
-    documents: [
-      {
-        title: String,
-        url: String,
-      },
-    ],
-    chapters: [
-      {
-        title: String,
-        content: String,
-      },
-    ],
-    program: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Program",
-    },
+    // program: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Program",
+    //   required: true, // Ensure program is always provided
+    // },
   },
   {
-    timestamps: true,
+    timestamps: true, // Adds createdAt and updatedAt fields
   }
 );
 
-const Course = mongoose.model("Course", courseSchema);
-export default Course;
+// Optionally, you can add indexes if you query by program frequently
+// courseSchema.index({ program: 1 });
+
+export default mongoose.model("Course", courseSchema);

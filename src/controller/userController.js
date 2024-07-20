@@ -63,39 +63,45 @@ export const register = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+ export const login = async (req, res) => {
+   try {
+     const { email, password } = req.body;
+     const user = await User.findOne({ email });
 
-    if (!user) {
-      throw new Error("Unable to login");
-    }
+     if (!user) {
+       throw new Error("Unable to login");
+     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new Error("Unable to login");
-    }
+     const isMatch = await bcrypt.compare(password, user.password);
+     if (!isMatch) {
+       throw new Error("Unable to login");
+     }
 
-    user.tokens.accessToken = generateAccessToken(user);
-    user.tokens.refreshToken = generateRefreshToken(user);
+     const accessToken = generateAccessToken(user);
+     const refreshToken = generateRefreshToken(user);
 
-    await user.save();
-    res.json({
-      user: {
-        ...user.toObject(),
-        tokens: {
-          accessToken: user.tokens.accessToken,
-          refreshToken: user.tokens.refreshToken,
-        },
-      },
-      accessToken: user.tokens.accessToken,
-      refreshToken: user.tokens.refreshToken,
-    });
-  } catch (error) {
-    res.status(400).json({ message: "Unable to login", error: error.message });
-  }
-};
+     user.tokens = { accessToken, refreshToken };
+
+     await user.save();
+
+     const userResponse = {
+       _id: user._id,
+       firstname: user.firstname,
+       lastname: user.lastname,
+       email: user.email,
+       gender: user.gender,
+       role: user.role,
+       createdAt: user.createdAt,
+       updatedAt: user.updatedAt,
+       tokens: { accessToken, refreshToken },
+     };
+
+     res.json({ user: userResponse });
+   } catch (error) {
+     res.status(400).json({ message: "Unable to login", error: error.message });
+   }
+ };
+
 
 export const refreshTokens = async (req, res) => {
   const { refreshToken } = req.body;
