@@ -2,6 +2,47 @@
  * @swagger
  * components:
  *   schemas:
+ *     Course:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The unique identifier of the course.
+ *           readOnly: true
+ *         program_title:
+ *           type: string
+ *           description: The ID of the program the course belongs to.
+ *         courseTitle:
+ *           type: string
+ *           description: The title of the course.
+ *         courseContent:
+ *           type: string
+ *           description: The content of the course.
+ *         videos:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of video URLs.
+ *         documents:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of document URLs.
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of image URLs.
+ *       required:
+ *         - program_title
+ *         - courseTitle
+ *         - courseContent
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
  *     Student:
  *       type: object
  *       properties:
@@ -65,8 +106,6 @@
  *           readOnly: true
  */
 
-// Student Login
-
 /**
  * @swagger
  * /student/loginStudent:
@@ -108,8 +147,6 @@
  *         description: Internal server error
  */
 
-// Create Student
-
 /**
  * @swagger
  * /student/createStudent:
@@ -141,8 +178,6 @@
  *         description: Internal server error
  */
 
-// Get All Students
-
 /**
  * @swagger
  * /student/getAllStudents:
@@ -162,11 +197,9 @@
  *         description: Internal server error
  */
 
-// Get Single Student by ID
-
 /**
  * @swagger
- * /getStudent/{id}:
+ * /student/getStudent/{id}:
  *   get:
  *     summary: Get a single student by ID
  *     tags: [Students]
@@ -187,8 +220,6 @@
  *       500:
  *         description: Internal server error
  */
-
-// Update Student
 
 /**
  * @swagger
@@ -228,8 +259,6 @@
  *         description: Internal server error
  */
 
-// Delete Student
-
 /**
  * @swagger
  * /student/deleteStudent/{id}:
@@ -254,6 +283,27 @@
  *                 message:
  *                   type: string
  *                   example: "Student deleted successfully"
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /student/getCoursesForStudent:
+ *   get:
+ *     summary: Get all courses for the logged-in student
+ *     tags: [Students]
+ *     responses:
+ *       200:
+ *         description: A list of courses for the student's enrolled program
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Course'
+ *       404:
+ *         description: Student or courses not found
  *       500:
  *         description: Internal server error
  */
