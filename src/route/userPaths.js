@@ -5,7 +5,9 @@ import {
   refreshTokens,
   updateUser,
   deleteUser,
-  getUserById 
+  getUserById,
+  register,
+  login
 } from "../controller/userController.js";
 import { auth } from "../../utils/jwtFunction.js";
 import { isAdmin, isInstructor } from "../middlewares/userRoleControl.js";
@@ -18,5 +20,7 @@ userRouter.get("/getAllUsers/",isAdmin, getAllUsers);
 userRouter.get("/getUserById/:id", isAdmin, getUserById);
 userRouter.put("/updateUser/:id", isAdmin, updateUser);
 userRouter.delete("/deleteUser/:id",isAdmin, deleteUser);
+userRouter.post("/register", register);
+userRouter.post("/login", login);
 
 export default userRouter;

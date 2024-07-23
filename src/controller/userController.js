@@ -2,23 +2,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../model/useModal.js";
 import dotenv from "dotenv";
+import { generateAccessToken,generateRefreshToken } from "../../utils/generateUserTokens.js";
 dotenv.config();
 
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    { _id: user._id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-};
 
-const generateRefreshToken = (user) => {
-  return jwt.sign(
-    { _id: user._id, email: user.email },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
-};
 
 export const register = async (req, res) => {
   try {
@@ -63,45 +50,44 @@ export const register = async (req, res) => {
   }
 };
 
- export const login = async (req, res) => {
-   try {
-     const { email, password } = req.body;
-     const user = await User.findOne({ email });
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
 
-     if (!user) {
-       throw new Error("Unable to login");
-     }
+    if (!user) {
+      throw new Error("Unable to login");
+    }
 
-     const isMatch = await bcrypt.compare(password, user.password);
-     if (!isMatch) {
-       throw new Error("Unable to login");
-     }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error("Unable to login");
+    }
 
-     const accessToken = generateAccessToken(user);
-     const refreshToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-     user.tokens = { accessToken, refreshToken };
+    user.tokens = { accessToken, refreshToken };
 
-     await user.save();
+    await user.save();
 
-     const userResponse = {
-       _id: user._id,
-       firstname: user.firstname,
-       lastname: user.lastname,
-       email: user.email,
-       gender: user.gender,
-       role: user.role,
-       createdAt: user.createdAt,
-       updatedAt: user.updatedAt,
-       tokens: { accessToken, refreshToken },
-     };
+    const userResponse = {
+      _id: user._id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      gender: user.gender,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      tokens: { accessToken, refreshToken },
+    };
 
-     res.json({ user: userResponse });
-   } catch (error) {
-     res.status(400).json({ message: "Unable to login", error: error.message });
-   }
- };
-
+    res.json({ user: userResponse });
+  } catch (error) {
+    res.status(400).json({ message: "Unable to login", error: error.message });
+  }
+};
 
 export const refreshTokens = async (req, res) => {
   const { refreshToken } = req.body;
@@ -143,8 +129,6 @@ export const refreshTokens = async (req, res) => {
 export const getProfile = async (req, res) => {
   res.json(req.user);
 };
-
-
 
 export const isAdmin = (req, res, next) => {
   if (req.user.role !== "isAdmin") {
@@ -225,4 +209,3 @@ export const deleteUser = async (req, res) => {
       .json({ message: "Failed to delete user", error: error.message });
   }
 };
-

@@ -3,10 +3,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import mainRouter from "./src/route/index.js";
 import bodyParser from "body-parser";
+import swaggerUi from "swagger-ui-express";
+import Docrouter from "./src/Docs/Swagger.js";
 dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 app.use("/", mainRouter);
+app.use("/api-docs", Docrouter);
 
 // environment variables
 const port = process.env.PORT || 3000;
@@ -23,7 +26,9 @@ mongoose
   .then(() => {
     console.log("Connected to MongoDB");
     app.listen(port, () => {
-      console.log(`Node API is running on port ${port}`);
+      console.log(
+        `Node API is running on port http://localhost:${port}/api-docs`
+      );
     });
   })
   .catch((error) => {

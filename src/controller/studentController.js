@@ -5,8 +5,6 @@ import Program from "../model/programModal.js";
 import sendEmail from "../../utils/sendemail.js";
 import dotenv from "dotenv";
 import Course from "../model/courseModal.js";
-import { generateAccessToken, 
-       generateRefreshToken }from "../../utils/generateStudentTokens.js"
 dotenv.config;
 
 // Get all students
@@ -21,7 +19,7 @@ export const getStudents = async (req, res) => {
 
     // Map through students to format the response
     const formattedStudents = students.map((student) => ({
-      _id: student._id,
+      regNumber: student.regNumber,
       student_firstname: student.student_firstname,
       student_lastname: student.student_lastname,
       student_email: student.student_email,
@@ -124,7 +122,7 @@ export const updateStudent = async (req, res) => {
     student.student_email = student_email ?? student.student_email;
     student.student_gender = student_gender ?? student.student_gender;
     student.student_level_of_education =
-    student_level_of_education ?? student.student_level_of_education;
+      student_level_of_education ?? student.student_level_of_education;
     student.student_country = student_country ?? student.student_country;
     student.student_district = student_district ?? student.student_district;
 
@@ -191,7 +189,8 @@ export const studentRegistration = async (req, res) => {
     const studentId = `${yearString}FFR${sequentialNumber}`;
 
     const newStudent = new Student({
-      _id: studentId,
+      regNumber: studentId,
+      userId: req.user._id,
       student_firstname,
       student_lastname,
       student_email,
@@ -201,10 +200,6 @@ export const studentRegistration = async (req, res) => {
       student_country,
       student_district,
       program_enrolled_in: program._id,
-      tokens: {
-        accessToken: generateAccessToken(studentId),
-        refreshToken: generateRefreshToken(studentId),
-      },
     });
 
     const savedStudent = await newStudent.save();
@@ -232,10 +227,6 @@ export const studentRegistration = async (req, res) => {
       message: "Student created successfully",
       student: {
         ...savedStudent.toObject(),
-        tokens: {
-          accessToken: newStudent.tokens.accessToken,
-          refreshToken: newStudent.tokens.refreshToken,
-        },
       },
     });
   } catch (error) {
@@ -260,19 +251,12 @@ export const loginStudent = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    student.tokens.accessToken = generateAccessToken(student._id);
-    student.tokens.refreshToken = generateRefreshToken(student._id);
-
     await student.save();
 
     res.json({
       message: "Login successful",
       student: {
         ...student.toObject(),
-        tokens: {
-          accessToken: student.tokens.accessToken,
-          refreshToken: student.tokens.refreshToken,
-        },
       },
     });
   } catch (error) {
@@ -283,40 +267,62 @@ export const loginStudent = async (req, res) => {
 
 export const getCoursesForStudent = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).populate({
-      path: "program_enrolled_in",
-      select: "_id program_title", // Select the program ID and title
-    });
+    // Find the student by ID and populate the program details
+    const userId = req.user._id.toString();
+
+    console.log(userId.toString());
+    const student = await Student.findOne({ userId });
+    // .populate({
+    //   path: "program_enrolled_in",
+    //   select: "_id program_title",
+    // });
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    console.log("Student:", student); // Log student details for debugging
+
+    // Find courses related to the student's program
     const courses = await Course.find({
-      program: student.program_enrolled_in._id,
+      program_title: student.program_enrolled_in._id.toString(), // Query by program reference
     }).populate({
-      path: "program",
-      select: "program_title", // Populate the program title
+      path: "program_title",
+      select: "program_title",
     });
 
-    // Format the courses to include program title
-    const formattedCourses = courses.map((course) => ({
-      _id: course._id,
-      title: course.title, // Correct field from the schema
-      description: course.description, // Correct field from the schema
-      videos: course.videos,
-      documents: course.documents,
-      chapters: course.chapters,
-      program: {
-        _id: course.program._id,
-        title: course.program.program_title, // Include program title
-      },
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt,
-    }));
+    console.log("Courses:", courses); // Log fetched courses for debugging
 
-    res.json(formattedCourses);
+    if (courses.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No courses found for this program" });
+    }
+
+    // Format and send the courses
+    // const formattedCourses = courses.map((course) => ({
+    //   _id: course._id,
+    //   title: course.courseTitle,
+    //   description: course.courseContent,
+    //   videos: course.videos,
+    //   documents: course.documents,
+    //   images: course.images,
+    //   program: {
+    //     _id: course.program._id,
+    //     title: course.program.program_title,
+    //   },
+    //   createdAt: course.createdAt,
+    //   updatedAt: course.updatedAt,
+    // }));
+
+    res.json(courses);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in getCoursesForStudent:", error); // Detailed error logging
+
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: "Invalid student ID format" });
+    }
+
+    res.status(500).json({ message: "An internal server error occurred" });
   }
 };
