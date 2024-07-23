@@ -117,3 +117,78 @@ export const createCourse = async (req, res) => {
   }
 };
 
+export const getCourses = async (req, res) => {
+  try {
+    const courses = await Course.find().populate("program_title");
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getCourseById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id).populate(
+      "program_title"
+    );
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.json(course);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const { courseTitle, courseContent, program_title } = req.body;
+    const { videos, documents, images } = req.files;
+
+    course.courseTitle = courseTitle || course.courseTitle;
+    course.courseContent = courseContent || course.courseContent;
+
+    if (program_title) {
+      const program = await Program.findOne({ program_title });
+      if (program) {
+        course.program_title = program._id;
+      }
+    }
+
+    if (videos) {
+      course.videos = await uploadFiles(videos);
+    }
+    if (documents) {
+      course.documents = await uploadFiles(documents);
+    }
+    if (images) {
+      course.images = await uploadFiles(images);
+    }
+
+    const updatedCourse = await course.save();
+    res.json(updatedCourse);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    await course.remove();
+    res.json({ message: "Course deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
