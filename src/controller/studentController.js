@@ -298,23 +298,7 @@ export const getCoursesForStudent = async (req, res) => {
         .status(404)
         .json({ message: "No courses found for this program" });
     }
-
-    // Format and send the courses
-    // const formattedCourses = courses.map((course) => ({
-    //   _id: course._id,
-    //   title: course.courseTitle,
-    //   description: course.courseContent,
-    //   videos: course.videos,
-    //   documents: course.documents,
-    //   images: course.images,
-    //   program: {
-    //     _id: course.program._id,
-    //     title: course.program.program_title,
-    //   },
-    //   createdAt: course.createdAt,
-    //   updatedAt: course.updatedAt,
-    // }));
-
+    
     res.json(courses);
   } catch (error) {
     console.error("Error in getCoursesForStudent:", error); // Detailed error logging
