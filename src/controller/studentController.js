@@ -272,10 +272,7 @@ export const getCoursesForStudent = async (req, res) => {
 
     console.log(userId.toString());
     const student = await Student.findOne({ userId });
-    // .populate({
-    //   path: "program_enrolled_in",
-    //   select: "_id program_title",
-    // });
+
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -298,7 +295,7 @@ export const getCoursesForStudent = async (req, res) => {
         .status(404)
         .json({ message: "No courses found for this program" });
     }
-    
+
     res.json(courses);
   } catch (error) {
     console.error("Error in getCoursesForStudent:", error); // Detailed error logging
