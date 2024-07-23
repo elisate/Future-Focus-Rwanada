@@ -7,9 +7,6 @@ import swaggerUi from "swagger-ui-express";
 import Docrouter from "./src/Docs/Swagger.js";
 dotenv.config();
 const app = express();
-app.use(bodyParser.json());
-app.use("/", mainRouter);
-app.use("/api-docs", Docrouter);
 
 // environment variables
 const port = process.env.PORT || 3000;
@@ -34,3 +31,8 @@ mongoose
   .catch((error) => {
     console.log(error);
   });
+
+//routes //end points
+app.use(bodyParser.json());
+app.use("/", mainRouter);
+app.use("/api-docs", Docrouter);
