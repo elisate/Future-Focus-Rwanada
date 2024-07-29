@@ -1,4 +1,11 @@
 import Program from "../model/programModal.js";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Get all programs
 export const getPrograms = async (req, res) => {
@@ -24,23 +31,23 @@ export const getProgramById = async (req, res) => {
 };
 
 // Create a new program
-export const createProgram = async (req, res) => {
-  const { program_title } = req.body;
+// export const createProgram = async (req, res) => {
+//   const { program_title } = req.body;
 
-  try {
-    // Check if a program with the same title already exists
-    const existingProgram = await Program.findOne({ program_title });
-    if (existingProgram) {
-      return res.status(400).json({ message: "Program title already exists" });
-    }
+//   try {
+//     // Check if a program with the same title already exists
+//     const existingProgram = await Program.findOne({ program_title });
+//     if (existingProgram) {
+//       return res.status(400).json({ message: "Program title already exists" });
+//     }
 
-    const newProgram = new Program({ program_title });
-    const savedProgram = await newProgram.save();
-    res.status(201).json(savedProgram);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+//     const newProgram = new Program({ program_title });
+//     const savedProgram = await newProgram.save();
+//     res.status(201).json(savedProgram);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 
 // Update a program
 export const updateProgram = async (req, res) => {
@@ -86,3 +93,63 @@ export const getProgramWithCourses = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+
+// Configure Cloudinary
+
+
+export const createProgram = async (req, res) => {
+  const { program_title, programContent } = req.body;
+  const { images } = req.files;
+
+  console.log("Request body:", req.body);
+  console.log("Request files:", req.files);
+
+  try {
+    // Check if a program with the same title already exists
+    const existingProgram = await Program.findOne({ program_title });
+    if (existingProgram) {
+      return res.status(400).json({ message: "Program title already exists" });
+    }
+
+    const uploadFiles = async (files) => {
+      const urls = [];
+      for (const file of files) {
+        try {
+          console.log(`Uploading file: ${file.path}`);
+          const result = await cloudinary.uploader.upload(file.path, {
+            resource_type: "auto",
+          });
+          console.log(`File uploaded: ${result.secure_url}`);
+          urls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error("Error uploading file to Cloudinary:", uploadError);
+          throw uploadError;
+        }
+      }
+      return urls;
+    };
+
+    const imageUrls = images ? await uploadFiles(images) : [];
+
+    console.log("Image URLs:", imageUrls);
+
+    // Create a new program
+    const newProgram = new Program({
+      program_title,
+      programContent,
+      images: imageUrls,
+    });
+
+    const savedProgram = await newProgram.save();
+    res.status(201).json({ data: savedProgram, message: "Success" });
+  } catch (error) {
+    console.error("Error creating program:", error.message);
+    res.status(500).json({
+      message: "Error creating program. Please try again later.",
+    });
+  }
+};
+

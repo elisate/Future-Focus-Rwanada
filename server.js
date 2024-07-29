@@ -3,8 +3,11 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import mainRouter from "./src/route/index.js";
 import bodyParser from "body-parser";
-import swaggerUi from "swagger-ui-express";
 import Docrouter from "./src/Docs/Swagger.js";
+
+import passport from "passport";
+import session from "express-session";
+import { googleStrategy } from "./src/config/googleLogin.js";
 dotenv.config();
 const app = express();
 
@@ -36,3 +39,5 @@ mongoose
 app.use(bodyParser.json());
 app.use("/", mainRouter);
 app.use("/api-docs", Docrouter);
+
+

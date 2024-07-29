@@ -16,11 +16,9 @@ const studentRouter = express.Router();
 // Link routes to controller functions
 studentRouter.post("/loginStudent", loginStudent);
 studentRouter.get("/getStudentById/:id", getStudentById);
-studentRouter.get("/getStudents", getStudents);
-studentRouter.use(auth);
-studentRouter.post("/studentRegister",  studentRegistration);
-studentRouter.get("/student/courses", getCoursesForStudent);
-studentRouter.use(isAdmin);
-studentRouter.put("/updateStudent/:id", updateStudent);
-studentRouter.delete("/deleteStudent/:id",deleteStudent);
+studentRouter.get("/getStudents",auth,isAdmin, getStudents);
+studentRouter.post("/studentRegister",auth,studentRegistration);
+studentRouter.get("/student/courses", auth,getCoursesForStudent);
+studentRouter.put("/updateStudent/:id", auth,isAdmin,updateStudent);
+studentRouter.delete("/deleteStudent/:id",auth,isAdmin,deleteStudent);
 export default studentRouter;
