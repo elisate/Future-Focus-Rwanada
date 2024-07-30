@@ -4,10 +4,8 @@ import dotenv from "dotenv";
 import mainRouter from "./src/route/index.js";
 import bodyParser from "body-parser";
 import Docrouter from "./src/Docs/Swagger.js";
+import cors from "cors";
 
-import passport from "passport";
-import session from "express-session";
-import { googleStrategy } from "./src/config/googleLogin.js";
 dotenv.config();
 const app = express();
 
@@ -17,8 +15,16 @@ const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASS;
 const dbName = process.env.DB_NAME;
 
-//db connection
+// Define CORS options
+const corsOptions = {
+  origin: "http://localhost:5173", // Update this to match your frontend origin
+  optionsSuccessStatus: 200,
+};
 
+// Use CORS middleware with options
+app.use(cors(corsOptions));
+
+// Database connection
 const dbUri = `mongodb+srv://${dbUser}:${dbPass}@cluster0.hex2mmr.mongodb.net/${dbName}?retryWrites=true&w=majority`;
 mongoose.set("strictQuery", false);
 mongoose
@@ -35,9 +41,7 @@ mongoose
     console.log(error);
   });
 
-//routes //end points
+// Routes / Endpoints
 app.use(bodyParser.json());
 app.use("/", mainRouter);
 app.use("/api-docs", Docrouter);
-
-
