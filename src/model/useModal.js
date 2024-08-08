@@ -21,7 +21,7 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      required: true,
+      required: false,
     },
     instructor_department: {
       type: String,

@@ -12,7 +12,7 @@ import { isAdmin, isInstructor } from "../controller/userController.js";
 const courseRouter = express.Router();
 
 courseRouter.post("/createCourse", upload,createCourse);
-courseRouter.get("/getCourses", auth,getCourses);
+courseRouter.get("/getCourses",getCourses);
 courseRouter.get("/getCourseById", getCourseById);
 courseRouter.get("/updateCourse", updateCourse);
 courseRouter.get("/updateCourse", deleteCourse);
