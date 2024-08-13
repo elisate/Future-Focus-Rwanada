@@ -17,7 +17,10 @@ const dbName = process.env.DB_NAME;
 
 // Define CORS options
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://future-focus-rwanda-web.vercel.app",
+  ],
   optionsSuccessStatus: 200,
   credentials: true,
 };
