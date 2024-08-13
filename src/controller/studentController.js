@@ -5,6 +5,7 @@ import Program from "../model/programModal.js";
 import sendEmail from "../../utils/sendemail.js";
 import dotenv from "dotenv";
 import Course from "../model/courseModal.js";
+import User from "../model/useModal.js";
 dotenv.config;
 
 // Get all students
@@ -23,7 +24,6 @@ export const getStudents = async (req, res) => {
       student_firstname: student.student_firstname,
       student_lastname: student.student_lastname,
       student_email: student.student_email,
-      student_password: student.student_password,
       student_gender: student.student_gender,
       student_level_of_education: student.student_level_of_education,
       student_country: student.student_country,
@@ -61,7 +61,6 @@ export const getStudentById = async (req, res) => {
       student_firstname: student.student_firstname,
       student_lastname: student.student_lastname,
       student_email: student.student_email,
-      student_password: student.student_password,
       student_gender: student.student_gender,
       student_level_of_education: student.student_level_of_education,
       student_country: student.student_country,
@@ -86,7 +85,6 @@ export const updateStudent = async (req, res) => {
     student_firstname,
     student_lastname,
     student_email,
-    student_password,
     student_gender,
     student_level_of_education,
     student_country,
@@ -112,9 +110,7 @@ export const updateStudent = async (req, res) => {
     }
 
     // Hash the password if provided
-    if (student_password) {
-      student.student_password = await bcrypt.hash(student_password, 10);
-    }
+  
 
     // Update other fields
     student.student_firstname = student_firstname ?? student.student_firstname;
@@ -147,12 +143,97 @@ export const deleteStudent = async (req, res) => {
 };
 
 // Create a new student
+// export const studentRegistration = async (req, res) => {
+//   const {
+//     student_firstname,
+//     student_lastname,
+//     student_email,
+//     student_password,
+//     student_gender,
+//     student_level_of_education,
+//     student_country,
+//     student_district,
+//   } = req.body;
+
+//   const program_title = req.body.program_enrolled_in;
+
+//   try {
+//     const existingStudent = await Student.findOne({ student_email });
+//     if (existingStudent) {
+//       return res.status(400).json({ message: "Email already in use" });
+//     }
+
+//     const program = await Program.findOne({ program_title });
+//     if (!program) {
+//       return res.status(400).json({ message: "Program not found" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(student_password, 10);
+
+//     const currentYear = new Date().getFullYear();
+//     const yearString = String(currentYear).slice(-2);
+
+//     let counter = await Counter.findOne({ year: currentYear });
+//     if (!counter) {
+//       counter = new Counter({ year: currentYear, count: 0 });
+//     }
+
+//     counter.count += 1;
+//     await counter.save();
+
+//     const sequentialNumber = String(counter.count).padStart(3, "0");
+//     const studentId = `${yearString}FFR${sequentialNumber}`;
+
+//     const newStudent = new Student({
+//       regNumber: studentId,
+//       userId: req.user._id,
+//       student_firstname,
+//       student_lastname,
+//       student_email,
+//       student_password: hashedPassword,
+//       student_gender,
+//       student_level_of_education,
+//       student_country,
+//       student_district,
+//       program_enrolled_in: program._id,
+//     });
+
+//     const savedStudent = await newStudent.save();
+
+//     const emailSubject = "Registration Successful";
+//     const emailContent = `
+//       <h1>Welcome to Our E-learning Platform</h1>
+//       <p>Dear ${student_firstname} ${student_lastname},</p>
+//       <p>Thank you for registering with us. Your student ID is <b>${studentId}</b>.</p>
+//       <p>We are excited to have you in the <b>${program_title}</b> program.</p>
+//       <p>Best regards,<br/>Future Focus Rwanda Team</p>
+//     `;
+//     const emailSent = await sendEmail(
+//       student_email,
+//       emailSubject,
+//       emailContent
+//     );
+//     if (!emailSent) {
+//       return res
+//         .status(500)
+//         .json({ message: "Student created but email could not be sent" });
+//     }
+
+//     res.status(201).json({
+//       message: "Student created successfully",
+//       student: {
+//         ...savedStudent.toObject(),
+//       },
+//     });
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 export const studentRegistration = async (req, res) => {
   const {
     student_firstname,
     student_lastname,
     student_email,
-    student_password,
     student_gender,
     student_level_of_education,
     student_country,
@@ -172,7 +253,7 @@ export const studentRegistration = async (req, res) => {
       return res.status(400).json({ message: "Program not found" });
     }
 
-    const hashedPassword = await bcrypt.hash(student_password, 10);
+    
 
     const currentYear = new Date().getFullYear();
     const yearString = String(currentYear).slice(-2);
@@ -190,11 +271,10 @@ export const studentRegistration = async (req, res) => {
 
     const newStudent = new Student({
       regNumber: studentId,
-      userId: req.user._id,
+      userId: req.user._id, // Assuming req.user._id contains the ID of the user creating the student
       student_firstname,
       student_lastname,
       student_email,
-      student_password: hashedPassword,
       student_gender,
       student_level_of_education,
       student_country,
@@ -203,6 +283,9 @@ export const studentRegistration = async (req, res) => {
     });
 
     const savedStudent = await newStudent.save();
+
+    // Update the user role to "student"
+    await User.findByIdAndUpdate(req.user._id, { role: "student" });
 
     const emailSubject = "Registration Successful";
     const emailContent = `
@@ -307,3 +390,63 @@ export const getCoursesForStudent = async (req, res) => {
     res.status(500).json({ message: "An internal server error occurred" });
   }
 };
+//get IT BY Id
+export const getCourseByIdForStudent = async (req, res) => {
+  try {
+    const courseId = req.params.courseId;
+
+    // Check if courseId is provided
+    if (!courseId) {
+      return res.status(400).json({ message: "Course ID is required" });
+    }
+
+    // Find the course by ID and populate the program details
+    const course = await Course.findById(courseId).populate({
+      path: "program_title",
+      select: "program_title",
+    });
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Get the student's user ID from the authenticated user
+    const userId = req.user._id;
+
+    // Find the student by user ID and populate the enrolled program details
+    const student = await Student.findOne({ userId }).populate({
+      path: "program_enrolled_in",
+      select: "_id",
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Check if the student is enrolled in the program that offers this course
+    const isEnrolledInProgram = student.program_enrolled_in._id.equals(
+      course.program_title._id
+    );
+
+    if (!isEnrolledInProgram) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to access this course" });
+    }
+
+    // If the student is enrolled, return the course data
+    res.json(course);
+  } catch (error) {
+    console.error("Error in getCourseByIdForStudent:", error);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: "Invalid course ID format" });
+    }
+
+    res.status(500).json({ message: "An internal server error occurred" });
+  }
+};
+
+
+
+

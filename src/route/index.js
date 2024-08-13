@@ -3,6 +3,7 @@ import programRouter from "./programPaths.js";
 import courseRouter from "./coursePaths.js";
 import userRouter from "./userPaths.js";
 import resetRouter from "./passwordResetPath.js";
+import studentProgress from "./progressPath.js";
 
 import express from "express";
 const mainRouter = express.Router();
@@ -12,6 +13,7 @@ mainRouter.use("/program", programRouter);
 mainRouter.use("/course", courseRouter);
 mainRouter.use("/user", userRouter);
 mainRouter.use("/reset",resetRouter);
+mainRouter.use("/",studentProgress);
 
 
 export default mainRouter;

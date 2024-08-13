@@ -21,10 +21,6 @@ const studentSchema = mongoose.Schema(
       type: String,
       
     },
-    student_password: {
-      type: String,
-      
-    },
     student_gender: {
       type: String,
       required: true,

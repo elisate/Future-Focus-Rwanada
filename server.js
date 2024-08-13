@@ -16,13 +16,14 @@ const dbPass = process.env.DB_PASS;
 const dbName = process.env.DB_NAME;
 
 // Define CORS options
-// const corsOptions = {
-//   origin: "http://localhost:5173", 
-//   optionsSuccessStatus: 200,
-// };
+const corsOptions = {
+  origin: "http://localhost:5173",
+  optionsSuccessStatus: 200,
+  credentials: true,
+};
 
 // Use CORS middleware with options
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Database connection
 const dbUri = `mongodb+srv://${dbUser}:${dbPass}@cluster0.hex2mmr.mongodb.net/${dbName}?retryWrites=true&w=majority`;

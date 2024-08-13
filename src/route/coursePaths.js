@@ -14,8 +14,8 @@ const courseRouter = express.Router();
 courseRouter.post("/createCourse", upload,createCourse);
 courseRouter.get("/getCourses",getCourses);
 courseRouter.get("/getCourseById", getCourseById);
-courseRouter.get("/updateCourse", updateCourse);
-courseRouter.get("/updateCourse", deleteCourse);
+courseRouter.put("/updateCourse/:id",upload, updateCourse);
+courseRouter.delete("/deleteCourse/:id", deleteCourse);
 
 
 export default courseRouter;

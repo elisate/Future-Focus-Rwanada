@@ -58,12 +58,15 @@ export const updateProgram = async (req, res) => {
     }
 
     program.program_title = req.body.program_title || program.program_title;
+    program.programContent = req.body.programContent || program.programContent;
+
     const updatedProgram = await program.save();
     res.json(updatedProgram);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 // Delete a program
 export const deleteProgram = async (req, res) => {

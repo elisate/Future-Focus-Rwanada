@@ -1,33 +1,39 @@
+
 import jwt from "jsonwebtoken";
 import User from "../src/model/useModal.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 export const auth = async (req, res, next) => {
-  // const token = req.header("Authorization").replace("Bearer ", "");
   if (!req.headers.authorization) {
-    return res.status(401).json({ message: "please login" });
+    return res.status(401).json({ message: "Please login" });
   }
-  // const token = req.headers.authorization.split(' ')[1];
-  const token = req.headers.authorization;
-  // console.log(token);
+
+  const token = req.headers.authorization.split(" ")[1]; // Extract token from header
+
   if (!token) {
-    return res.status(401).json({ message: "please login2" });
+    return res.status(401).json({ message: "Please login" });
   }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({
       _id: decoded._id,
-      "tokens.accessToken": token,
+      "tokens.accessToken": token, // Ensure this matches your user schema
     });
+
     if (!user) {
-      throw new Error();
+      return res
+        .status(401)
+        .json({ message: "User not found or token invalid" });
     }
 
     req.token = token;
     req.user = user;
     next();
   } catch (error) {
+    console.error("JWT Verification Error:", error); // Log the error for debugging
     res.status(401).json({ message: "Please authenticate.", error });
   }
 };
+

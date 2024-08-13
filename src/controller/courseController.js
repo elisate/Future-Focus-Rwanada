@@ -148,34 +148,65 @@ export const updateCourse = async (req, res) => {
     }
 
     const { courseTitle, courseContent, program_title } = req.body;
-    const { videos, documents, images } = req.files;
+    const { videos, documents, images } = req.files; // Access files directly
 
-    course.courseTitle = courseTitle || course.courseTitle;
-    course.courseContent = courseContent || course.courseContent;
+    // Update course title and content if provided in the request body
+    if (courseTitle) course.courseTitle = courseTitle;
+    if (courseContent) course.courseContent = courseContent;
 
+    // Handling program_title update
     if (program_title) {
-      const program = await Program.findOne({ program_title });
+      const program = await Program.findById(program_title); // Change to find by ID
       if (program) {
         course.program_title = program._id;
       }
     }
 
+    // Check and update videos, documents, and images if provided
     if (videos) {
-      course.videos = await uploadFiles(videos);
-    }
-    if (documents) {
-      course.documents = await uploadFiles(documents);
-    }
-    if (images) {
-      course.images = await uploadFiles(images);
+      const uploadedVideos = await uploadFiles(videos);
+      course.videos = uploadedVideos; // Update with new video URLs
     }
 
+    if (documents) {
+      const uploadedDocuments = await uploadFiles(documents);
+      course.documents = uploadedDocuments; // Update with new document URLs
+    }
+
+    if (images) {
+      const uploadedImages = await uploadFiles(images);
+      course.images = uploadedImages; // Update with new image URLs
+    }
+
+    // Save the updated course
     const updatedCourse = await course.save();
-    res.json(updatedCourse);
+    res.json(updatedCourse); // Return the updated course
   } catch (error) {
+    console.error("Error updating course:", error); // Log the error for debugging
     res.status(500).json({ message: error.message });
   }
 };
+
+// Helper function for uploading files
+const uploadFiles = async (files) => {
+  const urls = [];
+  for (const file of files) {
+    try {
+      const result = await cloudinary.uploader.upload(file.path, {
+        resource_type: "auto",
+      });
+      urls.push(result.secure_url);
+    } catch (uploadError) {
+      console.error("Error uploading file to Cloudinary:", uploadError);
+      throw uploadError;
+    }
+  }
+  return urls;
+};
+
+
+
+
 
 export const deleteCourse = async (req, res) => {
   try {
