@@ -56,12 +56,14 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new Error("Unable to login");
+      // User not found
+      return res.status(404).json({ message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new Error("Unable to login");
+      // Invalid credentials
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const accessToken = generateAccessToken(user);
@@ -76,7 +78,6 @@ export const login = async (req, res) => {
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      // gender: user.gender,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -85,9 +86,11 @@ export const login = async (req, res) => {
 
     res.json({ user: userResponse });
   } catch (error) {
-    res.status(400).json({ message: "Unable to login", error: error.message });
+    // General error handling
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 export const refreshTokens = async (req, res) => {
   const { refreshToken } = req.body;
