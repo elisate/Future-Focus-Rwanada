@@ -34,7 +34,7 @@ export const register = async (req, res) => {
 
     await user.save();
     res.status(201).json({
-      message: "User created successfully",
+      message: "Account created successfull !",
       user: {
         ...user.toObject(),
         tokens: {
