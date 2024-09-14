@@ -9,7 +9,6 @@ const courseSchema = new mongoose.Schema(
     videos: {
       type: Array,
     },
-
     documents: {
       type: Array,
     },
@@ -19,7 +18,7 @@ const courseSchema = new mongoose.Schema(
     courseContent: {
       type: String,
     },
-    program_title: {
+    program: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Program",
       required: true, // Ensure program is always provided
@@ -29,4 +28,6 @@ const courseSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
 export default mongoose.model("Course", courseSchema);
+

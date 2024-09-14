@@ -1,48 +1,5 @@
-// import Course from "../model/courseModal.js";
-// import { v2 as cloudinary } from "cloudinary";
-
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
-
-// export const createCourse = async (req, res) => {
-//   try {
-//     const { name } = req.body;
-//     const file = req.file;
-
-//     if (!file) {
-//       return res.status(400).json({ message: "File is required" });
-//     }
-
-//     const result = await cloudinary.uploader.upload(file.path, {
-//       resource_type: "auto", // Automatically detect resource type
-//     });
-
-//     const videoUrl = result.secure_url;
-//     const documentUrl=result.secure_url;
-//     const imageUrl=result.secure_url;
-
-//     const course = await Course.create({
-//       name,
-//       videos: [videoUrl], // Store video URL
-//       documents: [documentUrl],
-//       images: [imageUrl],
-//     });
-
-//     return res.status(201).json({ data: course, message: "Success" });
-//   } catch (error) {
-//     console.error("Error creating course:", error.message);
-//     res.status(500).json({
-//       message: "Error creating course. Please try again later.",
-//     });
-//   }
-// };
-
-
 import Course from "../model/courseModal.js";
-import Program from "../model/programModal.js"; // Import the Program model
+import Program from "../model/programModal.js"; // Ensure the Program model is imported
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -53,24 +10,16 @@ cloudinary.config({
 
 export const createCourse = async (req, res) => {
   try {
-    const { program_title, courseTitle, courseContent } = req.body;
+    const { program, courseTitle, courseContent } = req.body;
     const { videos, documents, images } = req.files;
-
-    console.log("Request body:", req.body);
-    console.log("Request files:", req.files);
 
     if (!videos && !documents && !images) {
       return res.status(400).json({ message: "At least one file is required" });
     }
 
-    // Log program title for debugging
-    console.log("Searching for program with title:", program_title);
-
-    // Find the program by its title
-    const program = await Program.findOne({ program_title });
-    console.log("Found program:", program);
-
-    if (!program) {
+    // Find the program by its ID
+    const foundProgram = await Program.findById(program);
+    if (!foundProgram) {
       return res.status(400).json({ message: "Program not found" });
     }
 
@@ -95,7 +44,7 @@ export const createCourse = async (req, res) => {
     const imageUrls = images ? await uploadFiles(images) : [];
 
     const course = await Course.create({
-      program_title: program._id, // Use the program ID
+      program, // Store the program ID directly
       courseTitle,
       courseContent,
       videos: videoUrls,
@@ -104,7 +53,7 @@ export const createCourse = async (req, res) => {
     });
 
     // Optionally, update the program with the new course
-    await Program.findByIdAndUpdate(program._id, {
+    await Program.findByIdAndUpdate(program, {
       $push: { courses: course._id },
     });
 
@@ -119,18 +68,41 @@ export const createCourse = async (req, res) => {
 
 export const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate("program_title");
+    // Populate the 'program' field with the 'program_title' field from the Program schema
+    const courses = await Course.find().populate("program", "program_title");
     res.json(courses);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const getCourseById = async (req, res) => {
+export const getCourseDetails = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id).populate(
+    const courseId = req.params.id; // Retrieve course ID from request parameters
+
+    // Find the course by ID and populate the 'program' field with 'program_title'
+    const course = await Course.findById(courseId).populate(
+      "program",
       "program_title"
     );
+
+    if (!course) {
+      // If no course found, return a 404 Not Found response
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Return the course details in the response
+    res.json(course);
+  } catch (error) {
+    // Handle any errors that occur during the database operation
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const getCourseById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id).populate("program");
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -147,66 +119,63 @@ export const updateCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const { courseTitle, courseContent, program_title } = req.body;
-    const { videos, documents, images } = req.files; // Access files directly
+    const { courseTitle, courseContent, program } = req.body;
+    const { videos, documents, images } = req.files;
 
     // Update course title and content if provided in the request body
     if (courseTitle) course.courseTitle = courseTitle;
     if (courseContent) course.courseContent = courseContent;
 
-    // Handling program_title update
-    if (program_title) {
-      const program = await Program.findById(program_title); // Change to find by ID
-      if (program) {
-        course.program_title = program._id;
+    // Handling program update
+    if (program) {
+      const foundProgram = await Program.findById(program);
+      if (foundProgram) {
+        course.program = foundProgram._id;
+      } else {
+        return res.status(400).json({ message: "Program not found" });
       }
     }
+
+    const uploadFiles = async (files) => {
+      const urls = [];
+      for (const file of files) {
+        try {
+          const result = await cloudinary.uploader.upload(file.path, {
+            resource_type: "auto",
+          });
+          urls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error("Error uploading file to Cloudinary:", uploadError);
+          throw uploadError;
+        }
+      }
+      return urls;
+    };
 
     // Check and update videos, documents, and images if provided
     if (videos) {
       const uploadedVideos = await uploadFiles(videos);
-      course.videos = uploadedVideos; // Update with new video URLs
+      course.videos = uploadedVideos;
     }
 
     if (documents) {
       const uploadedDocuments = await uploadFiles(documents);
-      course.documents = uploadedDocuments; // Update with new document URLs
+      course.documents = uploadedDocuments;
     }
 
     if (images) {
       const uploadedImages = await uploadFiles(images);
-      course.images = uploadedImages; // Update with new image URLs
+      course.images = uploadedImages;
     }
 
     // Save the updated course
     const updatedCourse = await course.save();
     res.json(updatedCourse); // Return the updated course
   } catch (error) {
-    console.error("Error updating course:", error); // Log the error for debugging
+    console.error("Error updating course:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
-
-// Helper function for uploading files
-const uploadFiles = async (files) => {
-  const urls = [];
-  for (const file of files) {
-    try {
-      const result = await cloudinary.uploader.upload(file.path, {
-        resource_type: "auto",
-      });
-      urls.push(result.secure_url);
-    } catch (uploadError) {
-      console.error("Error uploading file to Cloudinary:", uploadError);
-      throw uploadError;
-    }
-  }
-  return urls;
-};
-
-
-
-
 
 export const deleteCourse = async (req, res) => {
   try {
@@ -221,5 +190,3 @@ export const deleteCourse = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-

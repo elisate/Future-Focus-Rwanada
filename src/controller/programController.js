@@ -76,12 +76,13 @@ export const deleteProgram = async (req, res) => {
       return res.status(404).json({ message: "Program not found" });
     }
 
-    await program.remove();
+    await Program.findByIdAndDelete(req.params.id); // Use findByIdAndDelete
     res.json({ message: "Program deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 //special controlles btn program and courses
 

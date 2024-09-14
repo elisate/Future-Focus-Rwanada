@@ -7,16 +7,29 @@ import dotenv from "dotenv";
 import Course from "../model/courseModal.js";
 import User from "../model/useModal.js";
 dotenv.config;
+//get student details
+export const getAllStudents = async (req, res) => {
+  try {
+    // Find all students and populate the enrolled programs
+    const students = await Student.find().populate('program_enrolled_in');
 
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: 'No students found' });
+    }
+
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching student details:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
 // Get all students
 export const getStudents = async (req, res) => {
   try {
-    const students = await Student.find()
-      .populate({
-        path: "program_enrolled_in",
-        select: "program_title", // Only select the program_title field
-      })
-      .exec();
+    const students = await Student.find().populate(
+      "program_enrolled_in",
+      "program_title"
+    ); // Populate with the program title
 
     // Map through students to format the response
     const formattedStudents = students.map((student) => ({
@@ -41,6 +54,9 @@ export const getStudents = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 
 // Get a student by ID
 
@@ -143,92 +159,6 @@ export const deleteStudent = async (req, res) => {
 };
 
 // Create a new student
-// export const studentRegistration = async (req, res) => {
-//   const {
-//     student_firstname,
-//     student_lastname,
-//     student_email,
-//     student_password,
-//     student_gender,
-//     student_level_of_education,
-//     student_country,
-//     student_district,
-//   } = req.body;
-
-//   const program_title = req.body.program_enrolled_in;
-
-//   try {
-//     const existingStudent = await Student.findOne({ student_email });
-//     if (existingStudent) {
-//       return res.status(400).json({ message: "Email already in use" });
-//     }
-
-//     const program = await Program.findOne({ program_title });
-//     if (!program) {
-//       return res.status(400).json({ message: "Program not found" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(student_password, 10);
-
-//     const currentYear = new Date().getFullYear();
-//     const yearString = String(currentYear).slice(-2);
-
-//     let counter = await Counter.findOne({ year: currentYear });
-//     if (!counter) {
-//       counter = new Counter({ year: currentYear, count: 0 });
-//     }
-
-//     counter.count += 1;
-//     await counter.save();
-
-//     const sequentialNumber = String(counter.count).padStart(3, "0");
-//     const studentId = `${yearString}FFR${sequentialNumber}`;
-
-//     const newStudent = new Student({
-//       regNumber: studentId,
-//       userId: req.user._id,
-//       student_firstname,
-//       student_lastname,
-//       student_email,
-//       student_password: hashedPassword,
-//       student_gender,
-//       student_level_of_education,
-//       student_country,
-//       student_district,
-//       program_enrolled_in: program._id,
-//     });
-
-//     const savedStudent = await newStudent.save();
-
-//     const emailSubject = "Registration Successful";
-//     const emailContent = `
-//       <h1>Welcome to Our E-learning Platform</h1>
-//       <p>Dear ${student_firstname} ${student_lastname},</p>
-//       <p>Thank you for registering with us. Your student ID is <b>${studentId}</b>.</p>
-//       <p>We are excited to have you in the <b>${program_title}</b> program.</p>
-//       <p>Best regards,<br/>Future Focus Rwanda Team</p>
-//     `;
-//     const emailSent = await sendEmail(
-//       student_email,
-//       emailSubject,
-//       emailContent
-//     );
-//     if (!emailSent) {
-//       return res
-//         .status(500)
-//         .json({ message: "Student created but email could not be sent" });
-//     }
-
-//     res.status(201).json({
-//       message: "Student created successfully",
-//       student: {
-//         ...savedStudent.toObject(),
-//       },
-//     });
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// };
 export const studentRegistration = async (req, res) => {
   const {
     student_firstname,
@@ -238,150 +168,144 @@ export const studentRegistration = async (req, res) => {
     student_level_of_education,
     student_country,
     student_district,
+    program_enrolled_in, // Program title passed here
   } = req.body;
 
-  const program_title = req.body.program_enrolled_in;
-
   try {
-    const existingStudent = await Student.findOne({ student_email });
-    if (existingStudent) {
-      return res.status(400).json({ message: "Email already in use" });
-    }
-
-    const program = await Program.findOne({ program_title });
+    // Fetch the program using the provided title
+    const program = await Program.findOne({
+      program_title: program_enrolled_in,
+    });
     if (!program) {
       return res.status(400).json({ message: "Program not found" });
     }
 
-    
+    // Check if the student already exists with the same email
+    let existingStudent = await Student.findOne({ student_email });
 
-    const currentYear = new Date().getFullYear();
-    const yearString = String(currentYear).slice(-2);
+    if (existingStudent) {
+      // Check if the student is already enrolled in the program
+      const isAlreadyEnrolled = existingStudent.program_enrolled_in.includes(
+        program._id
+      );
+      if (isAlreadyEnrolled) {
+        return res
+          .status(400)
+          .json({ message: "You are already registered in this program." });
+      }
 
-    let counter = await Counter.findOne({ year: currentYear });
-    if (!counter) {
-      counter = new Counter({ year: currentYear, count: 0 });
+      // If not already enrolled, add the new program to the list
+      existingStudent.program_enrolled_in.push(program._id);
+      const updatedStudent = await existingStudent.save();
+
+      return res.status(200).json({
+        message: "Successfully enrolled in the new program",
+        student: updatedStudent,
+      });
+    } else {
+      // Generate a new student ID
+      const currentYear = new Date().getFullYear();
+      const yearString = String(currentYear).slice(-2);
+
+      let counter = await Counter.findOne({ year: currentYear });
+      if (!counter) {
+        counter = new Counter({ year: currentYear, count: 0 });
+      }
+
+      counter.count += 1;
+      await counter.save();
+
+      const sequentialNumber = String(counter.count).padStart(3, "0");
+      const studentId = `${yearString}FFR${sequentialNumber}`;
+
+      // Create a new student with the program
+      const newStudent = new Student({
+        regNumber: studentId,
+        userId: req.user._id,
+        student_firstname,
+        student_lastname,
+        student_email,
+        student_gender,
+        student_level_of_education,
+        student_country,
+        student_district,
+        program_enrolled_in: [program._id], // Add the program here
+      });
+
+      const savedStudent = await newStudent.save();
+
+      // Update the user role to "student"
+      await User.findByIdAndUpdate(req.user._id, { role: "student" });
+
+      // Send email notification
+      const emailSubject = "Registration Successful";
+      const emailContent = `
+        <h1>Welcome to Our E-learning Platform</h1>
+        <p>Dear ${student_firstname} ${student_lastname},</p>
+        <p>Thank you for registering with us. Your student ID is <b>${studentId}</b>.</p>
+        <p>We are excited to have you in the <b>${program_enrolled_in}</b> program.</p>
+        <p>Best regards,<br/>Future Focus Rwanda Team</p>
+      `;
+      const emailSent = await sendEmail(
+        student_email,
+        emailSubject,
+        emailContent
+      );
+      if (!emailSent) {
+        return res
+          .status(500)
+          .json({ message: "Student created but email could not be sent" });
+      }
+
+      return res.status(201).json({
+        message: "Student created successfully",
+        student: savedStudent,
+      });
     }
-
-    counter.count += 1;
-    await counter.save();
-
-    const sequentialNumber = String(counter.count).padStart(3, "0");
-    const studentId = `${yearString}FFR${sequentialNumber}`;
-
-    const newStudent = new Student({
-      regNumber: studentId,
-      userId: req.user._id, // Assuming req.user._id contains the ID of the user creating the student
-      student_firstname,
-      student_lastname,
-      student_email,
-      student_gender,
-      student_level_of_education,
-      student_country,
-      student_district,
-      program_enrolled_in: program._id,
-    });
-
-    const savedStudent = await newStudent.save();
-
-    // Update the user role to "student"
-    await User.findByIdAndUpdate(req.user._id, { role: "student" });
-
-    const emailSubject = "Registration Successful";
-    const emailContent = `
-      <h1>Welcome to Our E-learning Platform</h1>
-      <p>Dear ${student_firstname} ${student_lastname},</p>
-      <p>Thank you for registering with us. Your student ID is <b>${studentId}</b>.</p>
-      <p>We are excited to have you in the <b>${program_title}</b> program.</p>
-      <p>Best regards,<br/>Future Focus Rwanda Team</p>
-    `;
-    const emailSent = await sendEmail(
-      student_email,
-      emailSubject,
-      emailContent
-    );
-    if (!emailSent) {
-      return res
-        .status(500)
-        .json({ message: "Student created but email could not be sent" });
-    }
-
-    res.status(201).json({
-      message: "Student created successfully",
-      student: {
-        ...savedStudent.toObject(),
-      },
-    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
+
 //student login
-export const loginStudent = async (req, res) => {
-  const { student_email, student_password } = req.body;
 
-  try {
-    const student = await Student.findOne({ student_email });
-    if (!student) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    const isMatch = await bcrypt.compare(
-      student_password,
-      student.student_password
-    );
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    await student.save();
-
-    res.json({
-      message: "Login successful",
-      student: {
-        ...student.toObject(),
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to login", error: error.message });
-  }
-};
 // Get courses related to the program a student is enrolled in
 
 export const getCoursesForStudent = async (req, res) => {
   try {
-    // Find the student by ID and populate the program details
     const userId = req.user._id.toString();
-
-    console.log(userId.toString());
-    const student = await Student.findOne({ userId });
-
+    const student = await Student.findOne({ userId }).populate({
+      path: "program_enrolled_in",
+      populate: {
+        path: "courses",
+        select: "courseTitle videos images documents courseContent", // Include all relevant fields
+      },
+    });
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    console.log("Student:", student); // Log student details for debugging
-
-    // Find courses related to the student's program
-    const courses = await Course.find({
-      program_title: student.program_enrolled_in._id.toString(), // Query by program reference
-    }).populate({
-      path: "program_title",
-      select: "program_title",
+    // Extract courses from enrolled programs
+    const programs = student.program_enrolled_in;
+    const courses = programs.flatMap((program) => {
+      // Add program title to each course
+      return program.courses.map((course) => ({
+        ...course.toObject(),
+        program_title: program.program_title,
+      }));
     });
-
-    console.log("Courses:", courses); // Log fetched courses for debugging
 
     if (courses.length === 0) {
       return res
         .status(404)
-        .json({ message: "No courses found for this program" });
+        .json({ message: "No courses found for this student" });
     }
 
     res.json(courses);
   } catch (error) {
-    console.error("Error in getCoursesForStudent:", error); // Detailed error logging
+    console.error("Error in getCoursesForStudent:", error);
 
     if (error.name === "CastError") {
       return res.status(400).json({ message: "Invalid student ID format" });
@@ -390,51 +314,51 @@ export const getCoursesForStudent = async (req, res) => {
     res.status(500).json({ message: "An internal server error occurred" });
   }
 };
+
+
 //get IT BY Id
 export const getCourseByIdForStudent = async (req, res) => {
   try {
-    const courseId = req.params.courseId;
+    const { courseId } = req.params;
+    const userId = req.user._id.toString();
 
-    // Check if courseId is provided
-    if (!courseId) {
-      return res.status(400).json({ message: "Course ID is required" });
-    }
-
-    // Find the course by ID and populate the program details
-    const course = await Course.findById(courseId).populate({
-      path: "program_title",
-      select: "program_title",
-    });
-
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
-    }
-
-    // Get the student's user ID from the authenticated user
-    const userId = req.user._id;
-
-    // Find the student by user ID and populate the enrolled program details
+    // Find the student by userId and populate the enrolled program and courses
     const student = await Student.findOne({ userId }).populate({
       path: "program_enrolled_in",
-      select: "_id",
+      populate: {
+        path: "courses",
+        match: { _id: courseId }, // Match specific course by courseId
+        select: "courseTitle videos images documents courseContent", // Include relevant fields
+      },
     });
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Check if the student is enrolled in the program that offers this course
-    const isEnrolledInProgram = student.program_enrolled_in._id.equals(
-      course.program_title._id
-    );
+    // Extract the specific course from enrolled programs
+    const programs = student.program_enrolled_in;
+    let course = null;
 
-    if (!isEnrolledInProgram) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to access this course" });
+    for (const program of programs) {
+      const matchedCourse = program.courses.find(
+        (course) => course._id.toString() === courseId
+      );
+      if (matchedCourse) {
+        course = {
+          ...matchedCourse.toObject(),
+          program_title: program.program_title, // Add program title to course
+        };
+        break;
+      }
     }
 
-    // If the student is enrolled, return the course data
+    if (!course) {
+      return res
+        .status(404)
+        .json({ message: "Course not found for this student" });
+    }
+
     res.json(course);
   } catch (error) {
     console.error("Error in getCourseByIdForStudent:", error);

@@ -8,7 +8,6 @@ const programSchema = mongoose.Schema(
     program_title: {
       type: String,
       required: true,
-     
     },
     programContent: {
       type: String,
@@ -27,3 +26,4 @@ const programSchema = mongoose.Schema(
 
 const Program = mongoose.model("Program", programSchema);
 export default Program;
+

@@ -15,9 +15,9 @@ const programRouter = express.Router();
 // Link routes to controller functions
 programRouter.get("/getPrograms", getPrograms);
 programRouter.get("/getProgramById/:id",getProgramById);
-programRouter.post("/createProgram", auth,upload,createProgram);
+programRouter.post("/createProgram",auth,upload,createProgram);
 programRouter.put("/updateProgram/:id", auth,updateProgram);
-programRouter.delete("/deleteProgram/:id", auth,deleteProgram);
-programRouter.get("/getProgramWithCourses/:id", auth,getProgramWithCourses);
+programRouter.delete("/deleteProgram/:id",deleteProgram);
+programRouter.get("/getProgramWithCourses/:id",getProgramWithCourses);
 
 export default programRouter;
