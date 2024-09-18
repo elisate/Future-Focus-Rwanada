@@ -9,7 +9,15 @@ dotenv.config();
 
 export const register = async (req, res) => {
   try {
-    const { firstname, lastname, email, gender, password, role } = req.body;
+    const {
+      firstname,
+      lastname,
+      email,
+      gender,
+      password,
+      role,
+      instructor_department,
+    } = req.body;
 
     // Check if the email already exists
     const existingUser = await User.findOne({ email });
@@ -25,6 +33,7 @@ export const register = async (req, res) => {
       lastname,
       email,
       gender,
+      instructor_department,
       password: hashedPassword, // Save hashed password
       role,
     });
