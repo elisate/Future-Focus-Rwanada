@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../../utils/multer.js";
+// import upload from "../../utils/multer.js";
 import {
   getPrograms,
   getProgramById,
@@ -9,7 +9,8 @@ import {
   getProgramWithCourses,
 } from "../controller/programController.js";
 import { auth } from "../../utils/jwtFunction.js";
-
+import configureMulter from "../../utils/multer.js";
+const upload = configureMulter();
 const programRouter = express.Router();
 
 // Link routes to controller functions

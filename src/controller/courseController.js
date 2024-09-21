@@ -8,20 +8,24 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+
 export const createCourse = async (req, res) => {
   try {
-    const { program, courseTitle, courseContent } = req.body;
+    const { program_title, courseTitle, courseContent } = req.body;
     const { videos, documents, images } = req.files;
 
     if (!videos && !documents && !images) {
       return res.status(400).json({ message: "At least one file is required" });
     }
 
-    // Find the program by its ID
-    const foundProgram = await Program.findById(program);
+    // Find the program by its title
+    const foundProgram = await Program.findOne({ program_title });
     if (!foundProgram) {
       return res.status(400).json({ message: "Program not found" });
     }
+
+    // Get the program ID
+    const programId = foundProgram._id;
 
     const uploadFiles = async (files) => {
       const urls = [];
@@ -43,8 +47,9 @@ export const createCourse = async (req, res) => {
     const documentUrls = documents ? await uploadFiles(documents) : [];
     const imageUrls = images ? await uploadFiles(images) : [];
 
+    // Create the course with the found program ID
     const course = await Course.create({
-      program, // Store the program ID directly
+      program: programId,
       courseTitle,
       courseContent,
       videos: videoUrls,
@@ -53,7 +58,7 @@ export const createCourse = async (req, res) => {
     });
 
     // Optionally, update the program with the new course
-    await Program.findByIdAndUpdate(program, {
+    await Program.findByIdAndUpdate(programId, {
       $push: { courses: course._id },
     });
 
@@ -65,6 +70,7 @@ export const createCourse = async (req, res) => {
     });
   }
 };
+
 
 export const getCourses = async (req, res) => {
   try {

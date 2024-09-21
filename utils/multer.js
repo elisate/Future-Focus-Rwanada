@@ -1,54 +1,29 @@
-// import multer from "multer";
-
-// const configureMulter = () => {
-//   const storage = multer.diskStorage({
-//     destination(req, file, cb) {
-//       cb(null, "uploads/");
-//     },
-//     filename(req, file, cb) {
-//       cb(null, `${Date.now()}-${file.originalname}`);
-//     },
-//   });
-
-//   const upload = multer({
-//     storage,
-//     limits: {
-//       fileSize: 50 * 1024 * 1024,
-//       files: 1,
-//     },
-//   }).single("videos","documents","images");
-
-//   return upload;
-// };
-
-// export default configureMulter();
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
-import fs from "fs";
-import path from "path";
+
+// Configure Cloudinary storage for different types of files
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    let folder;
+    if (file.fieldname === "videos") {
+      folder = "videos";
+    } else if (file.fieldname === "documents") {
+      folder = "documents";
+    } else if (file.fieldname === "images") {
+      folder = "images";
+    }
+
+    return {
+      folder: folder, // The folder in Cloudinary where files will be uploaded
+      resource_type: "auto", // This tells Cloudinary to automatically detect file type (video, image, etc.)
+      public_id: `${Date.now()}-${file.originalname.split(".")[0]}`, // Custom file name
+    };
+  },
+});
 
 const configureMulter = () => {
-  const storage = multer.diskStorage({
-    destination(req, file, cb) {
-      let uploadPath = "uploads/";
-      if (file.fieldname === "videos") {
-        uploadPath += "videos/";
-      } else if (file.fieldname === "documents") {
-        uploadPath += "documents/";
-      } else if (file.fieldname === "images") {
-        uploadPath += "images/";
-      }
-
-      // Ensure the directory exists
-      const fullPath = path.resolve(uploadPath);
-      fs.mkdirSync(fullPath, { recursive: true });
-
-      cb(null, uploadPath);
-    },
-    filename(req, file, cb) {
-      cb(null, `${Date.now()}-${file.originalname}`);
-    },
-  });
-
   const upload = multer({
     storage,
     limits: {
@@ -56,7 +31,7 @@ const configureMulter = () => {
     },
     fileFilter(req, file, cb) {
       const allowedFormats = {
-        videos: ["video/mp4", "video/mpeg","video/mp3"],
+        videos: ["video/mp4", "video/mpeg", "video/mp3"],
         documents: [
           "application/pdf",
           "application/ppt",
@@ -65,6 +40,7 @@ const configureMulter = () => {
         ],
         images: ["image/jpeg", "image/png", "image/gif"],
       };
+
       if (
         allowedFormats[file.fieldname] &&
         allowedFormats[file.fieldname].includes(file.mimetype)
@@ -83,4 +59,4 @@ const configureMulter = () => {
   return upload;
 };
 
-export default configureMulter();
+export default configureMulter;

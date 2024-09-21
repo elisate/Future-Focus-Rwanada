@@ -73,7 +73,6 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
@@ -86,12 +85,13 @@ export const login = async (req, res) => {
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
+      instructor_department:user.instructor_department,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       tokens: { accessToken, refreshToken },
     };
-
+  
     res.json({ user: userResponse });
   } catch (error) {
     // General error handling
