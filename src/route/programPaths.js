@@ -6,10 +6,11 @@ import {
   createProgram,
   updateProgram,
   deleteProgram,
-  getProgramWithCourses,
+  getProgramWithCourses, 
 } from "../controller/programController.js";
 import { auth } from "../../utils/jwtFunction.js";
 import configureMulter from "../../utils/multer.js";
+import { isInstructor } from "../controller/userController.js";
 const upload = configureMulter();
 const programRouter = express.Router();
 
@@ -19,6 +20,6 @@ programRouter.get("/getProgramById/:id",getProgramById);
 programRouter.post("/createProgram",auth,upload,createProgram);
 programRouter.put("/updateProgram/:id", auth,updateProgram);
 programRouter.delete("/deleteProgram/:id",deleteProgram);
-programRouter.get("/getProgramWithCourses/:id",getProgramWithCourses);
+programRouter.get("/getProgramWithCourses/:id", getProgramWithCourses);
 
 export default programRouter;

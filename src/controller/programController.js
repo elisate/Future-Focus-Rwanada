@@ -1,5 +1,6 @@
 import Program from "../model/programModal.js";
 import { v2 as cloudinary } from "cloudinary";
+import User from "../model/useModal.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -156,4 +157,58 @@ export const createProgram = async (req, res) => {
     });
   }
 };
+
+//Special endpoint
+// Get programs related to the logged-in instructor
+
+// Assuming you have a Program model
+
+export const getInstructorProgramDetails = async (req, res) => {
+  try {
+    // Ensure the user is authenticated
+    const instructorId = req.user._id; // Assuming req.user contains authenticated user details
+
+    // Find the instructor and check if they are authorized
+    const instructor = await User.findById(instructorId);
+
+    // Ensure the user is an instructor
+    if (!instructor || instructor.role !== "isInstructor") {
+      return res.status(403).json({ message: "Unauthorized access" });
+    }
+
+    // Check if the instructor has a department
+    if (!instructor.instructor_department) {
+      return res
+        .status(400)
+        .json({ message: "Instructor department not specified" });
+    }
+
+    // Find programs related to the instructor's department
+    const programs = await Program.find({
+      department: instructor.instructor_department,
+    });
+
+    // Check if any programs were found
+    if (!programs || programs.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No programs found for this department" });
+    }
+
+    // Return the programs
+    res.status(200).json({
+      message: "Success",
+      data: programs,
+    });
+  } catch (error) {
+    console.error(
+      "Error fetching instructor's program details:",
+      error.message
+    );
+    res.status(500).json({
+      message: "Error fetching program details. Please try again later.",
+    });
+  }
+};
+
 

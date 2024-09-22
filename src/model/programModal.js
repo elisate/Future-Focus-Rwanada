@@ -12,6 +12,7 @@ const programSchema = mongoose.Schema(
     programContent: {
       type: String,
     },
+    
     courses: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,4 +27,3 @@ const programSchema = mongoose.Schema(
 
 const Program = mongoose.model("Program", programSchema);
 export default Program;
-

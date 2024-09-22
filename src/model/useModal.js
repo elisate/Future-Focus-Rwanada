@@ -28,10 +28,11 @@ const userSchema = mongoose.Schema(
       required: false,
     },
     role: {
-  type: String,
-  enum: ["isAdmin", "isInstructor","student","guest"],
-  default: "guest"
-},
+      type: String,
+      enum: ["isAdmin", "isInstructor", "student", "guest"],
+      default: "guest",
+    },
+   
     tokens: {
       accessToken: { type: String },
       refreshToken: { type: String },

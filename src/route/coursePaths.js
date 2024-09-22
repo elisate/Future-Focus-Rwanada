@@ -19,7 +19,7 @@ courseRouter.get("/getCourses",auth, getCourses);
 courseRouter.get("/getCoursesDetails", getCourseDetails);
 courseRouter.get("/getCourseById", getCourseById);
 courseRouter.put("/updateCourse/:id",upload, updateCourse);
-courseRouter.delete("/deleteCourse/:id", deleteCourse);
+courseRouter.delete("/deleteCourse/:id",auth,isAdmin, deleteCourse);
 
 
 export default courseRouter;
