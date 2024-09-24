@@ -32,11 +32,23 @@ const userSchema = mongoose.Schema(
       enum: ["isAdmin", "isInstructor", "student", "guest"],
       default: "guest",
     },
-   
+
     tokens: {
       accessToken: { type: String },
       refreshToken: { type: String },
     },
+    verified: { type: Boolean, required: false },
+    newPassword: {
+      type: String,
+      required: false,
+      select: false, // Do not include this field in query results
+    },
+    otp: {
+      type: String,
+      required: false,
+    },
+    resetPasswordToken: { type: String ,required:false},
+    resetPasswordExpires: { type: Date,required:false},
   },
   {
     timestamps: true,

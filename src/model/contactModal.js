@@ -1,3 +1,4 @@
+import { Type } from "js-yaml";
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
@@ -21,7 +22,12 @@ const contactSchema = new Schema(
     message: {
       type: String,
       required: true,
-    }
+    },
+    status: {
+      type: String,
+      required:false
+
+    },
   },
   {
     timestamps: true,

@@ -2,7 +2,7 @@ import studentRouter from "./studentPaths.js";
 import programRouter from "./programPaths.js";
 import courseRouter from "./coursePaths.js";
 import userRouter from "./userPaths.js";
-import resetRouter from "./passwordResetPath.js";
+import resetRouter from "./resetPaths.js";
 import studentProgress from "./progressPath.js";
 
 import express from "express";
@@ -13,7 +13,7 @@ mainRouter.use("/student", studentRouter);
 mainRouter.use("/program", programRouter);
 mainRouter.use("/course", courseRouter);
 mainRouter.use("/user", userRouter);
-mainRouter.use("/reset",resetRouter);
+mainRouter.use("/password",resetRouter);
 mainRouter.use("/", studentProgress);
 mainRouter.use("/contact", contactRouter);
 
