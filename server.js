@@ -21,6 +21,7 @@ const corsOptions = {
     "http://localhost:5173",
     "https://future-focus-rwanda-web.vercel.app",
     "https://future-focus-rwanda-elearning-platform.vercel.app",
+    "https://ffr-e-learning.web.app/"
   ],
   optionsSuccessStatus: 200,
   credentials: true,
