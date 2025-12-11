@@ -27,6 +27,12 @@ const userSchema = mongoose.Schema(
       type: String,
       required: false,
     },
+
+    images: {
+      type: Array,
+      required: false,
+    },
+
     role: {
       type: String,
       enum: ["isAdmin", "isInstructor", "student", "guest"],
@@ -47,8 +53,8 @@ const userSchema = mongoose.Schema(
       type: String,
       required: false,
     },
-    resetPasswordToken: { type: String ,required:false},
-    resetPasswordExpires: { type: Date,required:false},
+    resetPasswordToken: { type: String, required: false },
+    resetPasswordExpires: { type: Date, required: false },
   },
   {
     timestamps: true,

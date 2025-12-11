@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/node": "^7.22.19",
+    "africastalking": "^0.7.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
@@ -39,7 +40,7 @@
     "passport-google-oauth20": "^2.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "twilio": "^4.20.0",
+    "twilio": "^4.23.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

@@ -4,6 +4,7 @@ import User from "../model/useModal.js";
 import dotenv from "dotenv";
 import { generateAccessToken,generateRefreshToken } from "../../utils/generateUserTokens.js";
 dotenv.config();
+import { v2 as cloudinary } from "cloudinary";
 
 
 
@@ -17,6 +18,7 @@ export const register = async (req, res) => {
       password,
       role,
       instructor_department,
+      images
     } = req.body;
 
     // Check if the email already exists
@@ -34,6 +36,7 @@ export const register = async (req, res) => {
       email,
       gender,
       instructor_department,
+      images,
       password: hashedPassword, // Save hashed password
       role,
     });
@@ -87,6 +90,8 @@ export const login = async (req, res) => {
       email: user.email,
       instructor_department:user.instructor_department,
       role: user.role,
+      gender: user.gender,
+      images:user.images,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       tokens: { accessToken, refreshToken },
@@ -220,3 +225,73 @@ export const deleteUser = async (req, res) => {
       .json({ message: "Failed to delete user", error: error.message });
   }
 };
+
+
+//Updating the Profile Pic
+// ... (existing imports)
+
+
+
+// export const updateProfile = async (req, res) => {
+//   const userId = req.params.id;
+//   const updates = req.body;
+
+//   try {
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Only allow updating the role if the user is an admin
+//     if (req.user.role !== "isAdmin" && updates.role) {
+//       return res
+//         .status(403)
+//         .json({ message: "Only admins can update the role" });
+//     }
+
+//     // If a profile picture is uploaded, save the URL to the user's profilePicture field
+//     if (req.files && req.files.profilePicture) {
+//       const profilePictureFile = req.files.profilePicture[0]; // Accessing the first uploaded file for profilePicture
+//       updates.profilePicture = profilePictureFile.path; // This is the URL of the uploaded image in Cloudinary
+//     }
+
+//     // Update the user profile with new data
+//     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+//       new: true,
+//     });
+
+//     res.json({ message: "Profile updated successfully", user: updatedUser });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Failed to update profile", error: error.message });
+//   }
+// };
+export const updateProfile = async (req, res) => {
+  const userId = req.params.id;
+  const updates = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (req.user.role !== "isAdmin" && updates.role) {
+      return res.status(403).json({ message: "Only admins can update the role" });
+    }
+
+    if (req.files && req.files.profilePicture) {
+      const profilePictureFile = req.files.profilePicture[0];
+      updates.profilePicture = profilePictureFile.path;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update profile", error: error.message });
+  }
+};
+
+
+

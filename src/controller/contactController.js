@@ -1,5 +1,6 @@
 import Contact from "../model/contactModal.js";
 import sendEmail from "../../utils/sendemail.js";
+import sendSms from "../../twlio/sendingSMS.js";
 
 // Create a new contact
 
@@ -193,3 +194,46 @@ export const replyToContact = async (req, res) => {
     res.status(500).json({ error: "Failed to send email reply" });
   }
 };
+
+
+// export const createContact = async (req, res) => {
+//   try {
+//     const { names, email, subject, message, phone } = req.body;
+
+//     // Create a new contact entry with status set to "pending"
+//     const newContact = new Contact({
+//       names,
+//       email,
+//       subject,
+//       message,
+//       phone, // Include phoneNumber in the contact entry
+//       status: "Pending", // Set status to pending
+//     });
+//     const savedContact = await newContact.save();
+
+//     // Create SMS content for the confirmation message
+//     const smsContent = `
+// Hi ${names}, 
+
+// Thank you for reaching out to Future Focus Rwanda. 
+// We have received your message and will get back to you shortly.
+
+// Best Regards,
+// The Future Focus Rwanda Team
+//     `;
+
+//     // Send the confirmation SMS
+//     const smsSent = await sendSms(phone, smsContent);
+//     if (smsSent) {
+//       console.log("Confirmation SMS sent to:", phone);
+//     } else {
+//       console.log("Failed to send SMS to:", phone);
+//     }
+
+//     res.status(201).json(savedContact);
+//   } catch (error) {
+//     console.error("Error creating contact:", error);
+//     res.status(500).json({ error: "Failed to create contact" });
+//   }
+// };
+
