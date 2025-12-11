@@ -1,6 +1,6 @@
 import Contact from "../model/contactModal.js";
 import sendEmail from "../../utils/sendemail.js";
-import sendSms from "../../twlio/sendingSMS.js";
+// import sendSms from "../../twlio/sendingSMS.js";
 
 // Create a new contact
 
