@@ -161,39 +161,39 @@ export const deleteContact = async (req, res) => {
 //   }
 // };
 
-// // export const replyToContact = async (req, res) => {
-// //   try {
-// //     const { contactId, replySubject, replyMessage } = req.body;
+export const replyToContact = async (req, res) => {
+  try {
+    const { contactId, replySubject, replyMessage } = req.body;
 
-//     // Fetch the contact by ID to get the email address
-//     const contact = await Contact.findById(contactId);
-//     if (!contact) {
-//       return res.status(404).json({ error: "Contact not found" });
-//     }
+    // Fetch the contact by ID to get the email address
+    const contact = await Contact.findById(contactId);
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found" });
+    }
 
-//     // Prepare the email content
-//     const htmlContent = `
-//       <p>Dear ${contact.names},</p>
-//       <p>${replyMessage}</p>
-//       <p>Best regards,<br>Future Focus Rwanda Team</p>
-//     `;
+    // Prepare the email content
+    const htmlContent = `
+      <p>Dear ${contact.names},</p>
+      <p>${replyMessage}</p>
+      <p>Best regards,<br>Future Focus Rwanda Team</p>
+    `;
 
-//     // Send the reply email
-//     const emailSent = await sendEmail(contact.email, replySubject, htmlContent);
-//     if (!emailSent) {
-//       return res.status(500).json({ error: "Failed to send email reply" });
-//     }
+    // Send the reply email
+    const emailSent = await sendEmail(contact.email, replySubject, htmlContent);
+    if (!emailSent) {
+      return res.status(500).json({ error: "Failed to send email reply" });
+    }
 
-//     // Update the contact's status to "replied"
-//     contact.status = "Replied"; // Set status to replied
-//     await contact.save();
+    // Update the contact's status to "replied"
+    contact.status = "Replied"; // Set status to replied
+    await contact.save();
 
-//     res.status(200).json({ message: "Email reply sent successfully" });
-//   } catch (error) {
-//     console.error("Error sending email reply:", error);
-//     res.status(500).json({ error: "Failed to send email reply" });
-//   }
-// };
+    res.status(200).json({ message: "Email reply sent successfully" });
+  } catch (error) {
+    console.error("Error sending email reply:", error);
+    res.status(500).json({ error: "Failed to send email reply" });
+  }
+};
 
 
 // export const createContact = async (req, res) => {
