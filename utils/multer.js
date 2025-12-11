@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary/v2";
+import CloudinaryStorage from "multer-storage-cloudinary";
 import multer from "multer";
+
 
 // Configure Cloudinary storage for different types of files
 const storage = new CloudinaryStorage({

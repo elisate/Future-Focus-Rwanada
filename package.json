@@ -10,7 +10,8 @@
     "serve": "node dist/server.js"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": "18.x",
+    "npm": "8.x"
   },
   "keywords": [],
   "author": "elisa",
